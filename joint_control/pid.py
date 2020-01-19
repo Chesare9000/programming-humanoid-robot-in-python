@@ -13,10 +13,10 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'software_installation'))
+from spark_agent import SparkAgent, JOINT_CMD_NAMES
 
 import numpy as np
 from collections import deque
-from spark_agent import SparkAgent, JOINT_CMD_NAMES
 
 
 class PIDController(object):

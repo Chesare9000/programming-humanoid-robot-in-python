@@ -21,7 +21,7 @@
 
 
 from pid import PIDAgent
-from keyframes import hello
+from keyframes import wipe_forehead
 import numpy as np
 
 class AngleInterpolationAgent(PIDAgent):
@@ -121,5 +121,5 @@ class AngleInterpolationAgent(PIDAgent):
 
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
-    agent.keyframes = hello()  # CHANGE DIFFERENT KEYFRAMES
+    agent.keyframes = wipe_forehead(1)  # CHANGE DIFFERENT KEYFRAMES
     agent.run()
