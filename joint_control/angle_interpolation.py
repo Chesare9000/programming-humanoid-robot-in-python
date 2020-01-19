@@ -22,7 +22,7 @@
 
 from pid import PIDAgent
 from keyframes import hello
-
+import numpy as np
 
 class AngleInterpolationAgent(PIDAgent):
     def __init__(self, simspark_ip='localhost',
@@ -31,6 +31,7 @@ class AngleInterpolationAgent(PIDAgent):
                  player_id=0,
                  sync_mode=True):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
+        self.start = -1
         self.keyframes = ([], [], [])
 
     def think(self, perception):
@@ -40,8 +41,6 @@ class AngleInterpolationAgent(PIDAgent):
 
     def angle_interpolation(self, keyframes, perception):
         target_joints = {}
-
-
         # YOUR CODE HERE
 
         if(self.keyframes == ([],[],[])):
@@ -58,16 +57,16 @@ class AngleInterpolationAgent(PIDAgent):
         skippedJoints = 0
         for (i, name) in enumerate(names):
 
-            timeLow = 0     # represents the lower  keyframe
-            timeHigh = 0    # represents the upper  keyframe
-            kfNum = 0       # the upper index for interpolation
-            jointTimes = times[i]
+            timeLow = 0     # represents the lower threshold of the keyframe
+            timeHigh = 0    # represents the upper threshold of the keyframe
+            kfNum = 0       # the upper index of the keyframe which has to be used for interpolation
+            jointTimes = times[i]    # just for easier reading/writing
             lenJointTimes = len(jointTimes)
 
-            # interpolation is finished for this joint
+            # interpolation is finished for this joint, dont do any more steps
             if (timeDiff > jointTimes[-1]):
                 skippedJoints += 1
-                # reset timer and keyframes
+                # if we skipped all joints interpolation is done -> reset timer and keyframes
                 if(skippedJoints == len(names)):
                     self.start = -1
                     self.keyframes = ([],[],[])
@@ -80,7 +79,7 @@ class AngleInterpolationAgent(PIDAgent):
             for j in xrange(lenJointTimes):
                 timeHigh = jointTimes[j]
 
-                #right interval
+                # we found the right interval -> break
                 if ((timeDiff >= timeLow and timeDiff < timeHigh)):
                     kfNum = j
                     break
@@ -117,6 +116,7 @@ class AngleInterpolationAgent(PIDAgent):
 
             if(name == "LHipYawPitch"):
                 target_joints["RHipYawPitch"] = angle
+
         return target_joints
 
 if __name__ == '__main__':
