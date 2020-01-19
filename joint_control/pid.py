@@ -38,6 +38,7 @@ class PIDController(object):
         self.Kp = 0
         self.Ki = 0
         self.Kd = 0
+        self.integrator = 0
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
     def set_delay(self, delay):
@@ -53,6 +54,22 @@ class PIDController(object):
         @return control signal
         '''
         # YOUR CODE HERE
+
+        #Best Values found in the Notebook Simulation:
+        # KP 25
+        # KI 0
+        # KD -0.2
+
+        error = target - sensor
+        self.derivator = error
+
+        P_value = self.Kp * error
+        D_value = self.Kd * ( error - self.derivator)
+        I_value = self.integrator * self.Ki
+
+        self.integrator += error
+
+        self.u = P_value + I_value + D_value
 
         return self.u
 
@@ -76,7 +93,7 @@ class PIDAgent(SparkAgent):
         self.target_joints: target positions (dict: joint_id -> position (target)) '''
         joint_angles = np.asarray(
             [perception.joint[joint_id]  for joint_id in JOINT_CMD_NAMES])
-        target_angles = np.asarray([self.target_joints.get(joint_id, 
+        target_angles = np.asarray([self.target_joints.get(joint_id,
             perception.joint[joint_id]) for joint_id in JOINT_CMD_NAMES])
         u = self.joint_controller.control(target_angles, joint_angles)
         action.speed = dict(zip(JOINT_CMD_NAMES.iterkeys(), u))  # dict: joint_id -> speed
