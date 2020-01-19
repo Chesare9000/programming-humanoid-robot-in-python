@@ -38,7 +38,6 @@ class PIDController(object):
         self.Kp = 32
         self.Ki = 1
         self.Kd = -0.2
-        self.integrator = 0
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
     def set_delay(self, delay):
@@ -53,8 +52,6 @@ class PIDController(object):
         @param sensor: current values from sensor
         @return control signal
         '''
-        # YOUR CODE HERE
-
         e0 = target - sensor
 
         self.u = self.u #
