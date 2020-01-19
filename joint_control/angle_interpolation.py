@@ -44,36 +44,79 @@ class AngleInterpolationAgent(PIDAgent):
 
         # YOUR CODE HERE
 
-        if (self.start_time == -1):
-            self.start_time = perception.time
-        current_time = perception.time - self.start_time
+        if(self.keyframes == ([],[],[])):
+            return target_joints
+
+        # calculate time
+        if(self.start == -1):
+            self.start = perception.time
+        timeDiff = perception.time - self.start
 
         (names, times, keys) = keyframes
 
-        for joint in range(len(names)):
-            if(names[joint] not in self.joint_names):
-                continue
-            else:
-                for time in range(len(times[joint])):
-                    if(time == 0 and current_time < times[joint][time]):
-                        P0 = perception.joint[names[joint]]
-                        P3 = keys[joint][time][0]
-                        P1 = P0 + keys[joint][time][2][2]
-                        P2 = P3 + keys[joint][time + 1][1][2]
-                        t0 = 0.0
-                        t3 = times[joint][time]
-                    elif(time < (len(times[joint]) - 1) and current_time >= times[joint][time] and current_time < times[joint][time + 1]):
-                        P0 = keys[joint][time][0]
-                        P3 = keys[joint][time + 1][0]
-                        P1 = P0 + keys[joint][time][2][2]
-                        P2 = P3 + keys[joint][time + 1][1][2]
-                        t0 = times[joint][time]
-                        t3 = times[joint][time + 1]
-                    else:
-                        continue
-                    i = (current_time - t0)/(t3 - t0)
-                    target_joints[names[joint]] = ((1 - i)**3)*P0 + 3*((1 - i)**2)*i*P1 + 3*(1 - i)*(i**2)*P2 + (i**3)*P3
+        # iterate over all joints in the keyframes
+        skippedJoints = 0
+        for (i, name) in enumerate(names):
 
+            timeLow = 0     # represents the lower  keyframe
+            timeHigh = 0    # represents the upper  keyframe
+            kfNum = 0       # the upper index for interpolation
+            jointTimes = times[i]
+            lenJointTimes = len(jointTimes)
+
+            # interpolation is finished for this joint
+            if (timeDiff > jointTimes[-1]):
+                skippedJoints += 1
+                # reset timer and keyframes
+                if(skippedJoints == len(names)):
+                    self.start = -1
+                    self.keyframes = ([],[],[])
+                continue
+
+
+
+
+            # iterate over all times of the current joint to find the right time span
+            for j in xrange(lenJointTimes):
+                timeHigh = jointTimes[j]
+
+                #right interval
+                if ((timeDiff >= timeLow and timeDiff < timeHigh)):
+                    kfNum = j
+                    break
+                timeLow = timeHigh
+
+            # calculate t-value
+            if((timeHigh - timeLow) == 0.):
+                t=1.
+            else:
+                t = (timeDiff - timeLow) / (timeHigh - timeLow)
+
+            if t > 1.:
+                t = 1.
+            elif t < 0.:
+                t = 0.
+
+            # computing points
+            # special case: first one
+            if (kfNum == 0):
+                p3 = keys[i][kfNum][0]
+                p2 = p3 + keys[i][kfNum][1][2]
+                p0 = 0
+                p1 = 0
+            else:
+                p0 = keys[i][kfNum-1][0]
+                p3 = keys[i][kfNum][0]
+                p1 = p0 + keys[i][kfNum-1][1][2]
+                p2 = p3 + keys[i][kfNum][1][2]
+
+
+            # bezier
+            angle = ((1-t)**3)*p0 + 3*t*((1-t)**2)*p1 + 3*(t**2)*(1-t)*p2 + (t**3)*p3
+            target_joints[name] = angle
+
+            if(name == "LHipYawPitch"):
+                target_joints["RHipYawPitch"] = angle
         return target_joints
 
 if __name__ == '__main__':
