@@ -17,7 +17,6 @@ import sys
 import threading
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'kinematics'))
 
 from inverse_kinematics import InverseKinematicsAgent
 
